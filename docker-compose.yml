@@ -1,0 +1,79 @@
+# Initially you'll want to start these containers with:
+# 
+# "docker-compose up"
+# 
+# After you've been working with the database for a while, DO NOT bring them
+# down with:
+# 
+# "docker-compose down".
+# 
+# This command WILL DELETE ALL OF YOUR DATA!
+# 
+# If you want to stop your instances, use:
+# 
+# "docker-compose stop". When you start
+# 
+# the containers again with:
+# 
+# "docker-compose start"
+#
+#, your MySQL data will still be available.
+
+# Start our MySQL instance.
+mysql:
+  # Which Docker image are we using.
+  image: mysql:5.6
+  # Pass any environment variables to the container.
+  environment: 
+    MYSQL_ROOT_PASSWORD: drupal_mysql_password
+    MYSQL_DATABASE: drupal
+
+  # Expose the MySQL port to the other containers.
+  ports:
+    - "3306"
+  
+# Start a redis container
+#redis:
+#  image: redis:2.8
+#  ports:
+#    - "6379"
+
+# Start a Solr container
+#solr:
+#  build: ../../build/drupal-solr
+#  ports:
+#    - "8983"
+
+# Start our php container.
+php:
+  # Get our development php copy.
+  image: midnetmedia/cloud-php:5.6
+  
+  # Link our development folder to the host.
+  # PHP-FPM requires that the files be on the same server.
+  volumes:
+   - /Users/philipfrilling/Sites/docker.drupal7.43:/usr/local/apache2/htdocs
+  
+  # Link back to MySQL, or the database will not connect.
+  links:
+    - mysql
+
+web:
+  image: midnetmedia/cloud-apache:2.4
+  
+  # Expose our common web ports.
+  ports:
+   - "80"
+   - "443"
+   - "22"
+
+  # Get our php files onto the container.
+  volumes:
+   - /Users/philipfrilling/Sites/docker.drupal7.43:/usr/local/apache2/htdocs
+
+  # Link to our MySQL and PHP containers
+  links:
+   - mysql
+   - php
+#   - redis
+#   - solr
